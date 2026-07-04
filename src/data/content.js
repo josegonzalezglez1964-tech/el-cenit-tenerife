@@ -8,12 +8,12 @@ export const brand = {
 
 export const nav = [
   { label: "Tesis", href: "#tesis" },
-  { label: "2026—2125", href: "#timeline" },
+  { label: "2026—2126", href: "#timeline" },
   { label: "Tenerife", href: "#tenerife" },
 ];
 
 export const hero = {
-  eyebrow: "Informe estratégico · 2026 — 2125",
+  eyebrow: "Informe estratégico · 2026 — 2126",
   titleLine1: "El cénit de la",
   titleHighlight: "convergencia",
   description:
@@ -28,7 +28,7 @@ export const hero = {
     "INTECH",
     "LOPDGDD 3/2018",
     "TEIDE",
-    "2026—2125",
+    "2026—2126",
   ],
 };
 
@@ -70,7 +70,7 @@ export const timeline = {
   eyebrow: "02 · Cronología",
   title: "Cien años de convergencia.",
   description:
-    "Desde la economía del más allá digital hasta la colonización orbital de la conciencia. Una hoja de ruta para 2025—2125 anclada en Santa Cruz de Tenerife.",
+    "Desde la economía del más allá digital hasta la colonización orbital de la conciencia. Una hoja de ruta para 2026—2126 anclada en Santa Cruz de Tenerife.",
   stages: [
     {
       range: "2025-2030",
@@ -97,7 +97,7 @@ export const timeline = {
       tags: ["Cifrado lattice-postcuántico", "Custodia interplanetaria", "Sucesión multi-firma"],
     },
     {
-      range: "2090 — 2125",
+      range: "2090 — 2126",
       number: "04",
       title: "Colonización Digital del Sistema Solar",
       description:
