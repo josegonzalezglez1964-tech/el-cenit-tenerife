@@ -8,7 +8,7 @@ export const brand = {
 
 export const nav = [
   { label: "Tesis", href: "#tesis" },
-  { label: "2025—2125", href: "#timeline" },
+  { label: "2026—2125", href: "#timeline" },
   { label: "Tenerife", href: "#tenerife" },
 ];
 
@@ -28,7 +28,7 @@ export const hero = {
     "INTECH",
     "LOPDGDD 3/2018",
     "TEIDE",
-    "2025—2125",
+    "2026—2125",
   ],
 };
 
