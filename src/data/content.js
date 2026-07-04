@@ -13,7 +13,7 @@ export const nav = [
 ];
 
 export const hero = {
-  eyebrow: "Informe estratégico · 2025 — 2125",
+  eyebrow: "Informe estratégico · 2026 — 2125",
   titleLine1: "El cénit de la",
   titleHighlight: "convergencia",
   description:
