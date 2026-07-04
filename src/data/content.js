@@ -149,13 +149,13 @@ export const tenerife = {
   title: "Santa Cruz de Tenerife.",
   titleHighlight: "Alquimia fiscal.",
   description:
-    "La Zona Especial Canaria combinada con la Reserva para Inversiones convierte a Tenerife en el puerto fiscal natural del legado digital europeo. INtech y la Universidad de La Laguna proveen el talento. El plazo de inscripción ZEC cierra el 31 de diciembre de 2026, sin prórroga.",
+    "La Zona Especial Canaria combinada con la Reserva para Inversiones convierte a Tenerife en el puerto fiscal natural del legado digital europeo. INtech Tenerife —el parque científico y tecnológico del Cabildo, con los enclaves IACtec y NanoTEC— y la Universidad de La Laguna proveen el talento. Tenerife es también nodo físico real de internet: los cables submarinos ACE, WACS y 2Africa conectan aquí Europa, África y América, con una nueva ruta hacia Marruecos en construcción. El plazo de inscripción ZEC cierra el 31 de diciembre de 2026, sin prórroga.",
   landmark: "Teide · 3 718 m · referencia notarial del cénit",
   stats: [
     { label: "ZEC", value: "4%", caption: "Impuesto sobre Sociedades · vigente hasta 2032" },
     { label: "RIC", value: "90%", caption: "Reducción de base imponible" },
     { label: "I+D+i", value: "25–59%", caption: "Deducciones tecnológicas (Art. 35 LIS)" },
-    { label: "ULL", value: "∞", caption: "Talento en astrofísica y biomedicina" },
+    { label: "ULL", value: "∞", caption: "Talento en astrofísica (IAC) y biomedicina" },
   ],
 };
 
