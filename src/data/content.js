@@ -37,7 +37,7 @@ export const tesis = {
   title: "El residuo digital es el nuevo patrimonio.",
   paragraphs: [
     {
-      pre: "Para finales de 2025 la humanidad generará ",
+      pre: "Para finales de 2026 la humanidad generará ",
       stat: "180 zettabytes",
       post: " de datos. Ese residuo —fotografías, cripto, conversaciones, archivos, voz— se ha convertido en un activo crítico que sobrevive al cuerpo biológico.",
     },
