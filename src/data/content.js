@@ -90,8 +90,8 @@ export const timeline = {
       number: "01",
       title: "Génesis del Patrimonio Digital",
       description:
-        "221 zettabytes anuales. El residuo digital se vuelve activo. El mercado de testamentos digitales pasa de 1.850M$ a 2.020M$ solo entre 2025 y 2026, con el plazo de inscripción ZEC cerrando el 31 de diciembre de 2026.",
-      tags: ["Bóvedas familiares", "Bucles virales incentivados", "Cumplimiento LOPDGDD 3/2018"],
+        "221 zettabytes anuales conforman el nuevo patrimonio. El Reglamento Europeo de IA entra en aplicación general el 2 de agosto de 2026, obligando a asistentes conversacionales —como el Asistente Cénit— a identificarse como IA ante el usuario. En paralelo, el plazo de inscripción ZEC cierra el 31 de diciembre de 2026, y la NSA marca 2030-2033 como los años clave para migrar a cifrado post-cuántico, antes de que la computación cuántica pueda descifrar mañana lo que alguien archive hoy.",
+      tags: ["Transparencia IA obligatoria (ago 2026)", "Migración post-cuántica 2030-2033", "Cumplimiento LOPDGDD 3/2018"],
     },
     {
       range: "2031-2051",
