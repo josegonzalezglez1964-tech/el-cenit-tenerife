@@ -1,5 +1,12 @@
 // Todo el contenido textual del sitio vive aquí.
 // Edita estos objetos para cambiar textos sin tocar los componentes.
+//
+// Datos de referencia actualizados a julio de 2026:
+// - Volumen de datos globales 2026: ~221 zettabytes/año (IDC Global DataSphere, DemandSage)
+// - Mercado de plataformas de testamento digital: 1.850M$ (2025) → 2.020M$ (2026) → 3.670M$ (2034), CAGR 8,2%
+// - ZEC: 4% IS, vigente hasta 2032. Plazo de inscripción: 31 dic 2026 (sin prórroga)
+// - RIC: hasta 90% de reducción de base imponible
+// - Deducciones I+D+i: 25% base, hasta 42% sobre exceso + 17% adicional por personal investigador (Art. 35 LIS)
 
 export const brand = {
   name: "El Cénit",
@@ -37,16 +44,16 @@ export const tesis = {
   title: "El residuo digital es el nuevo patrimonio.",
   paragraphs: [
     {
-      pre: "Para finales de 2026 la humanidad generará ",
-      stat: "180 zettabytes",
+      pre: "Solo en 2026 la humanidad generará más de ",
+      stat: "221 zettabytes",
       post: " de datos. Ese residuo —fotografías, cripto, conversaciones, archivos, voz— se ha convertido en un activo crítico que sobrevive al cuerpo biológico.",
     },
     {
-      pre: "El mercado de la herencia digital salta de ",
-      stat: "12.000M$ (2022)",
+      pre: "El mercado global de plataformas de testamento digital pasa de ",
+      stat: "1.850M$ (2025)",
       mid: " a ",
-      stat2: "52.000M$ (2030)",
-      post: ". Pero la fricción técnica y la urgencia emocional siguen sin resolverse. El Cénit es nuestra respuesta.",
+      stat2: "2.020M$ (2026)",
+      post: ", camino a superar los 3.670M$ en 2034. Pero la fricción técnica y la urgencia emocional siguen sin resolverse. El Cénit es nuestra respuesta.",
     },
   ],
   cards: [
@@ -61,7 +68,7 @@ export const tesis = {
     },
     {
       title: "Asistente Cénit",
-      description: "Claude Sonnet 4.5 redacta cláusulas y mensajes desde tu intención.",
+      description: "Claude Sonnet 5 redacta cláusulas y mensajes desde tu intención.",
     },
   ],
 };
@@ -73,15 +80,15 @@ export const timeline = {
     "Desde la economía del más allá digital hasta la colonización orbital de la conciencia. Una hoja de ruta para 2026—2126 anclada en Santa Cruz de Tenerife.",
   stages: [
     {
-      range: "2026-2030",
+      range: "2026-2031",
       number: "01",
       title: "Génesis del Patrimonio Digital",
       description:
-        "180 zettabytes anuales. El residuo digital se vuelve activo. El mercado de la herencia digital salta de 12B$ a 52B$.",
+        "221 zettabytes anuales. El residuo digital se vuelve activo. El mercado de testamentos digitales pasa de 1.850M$ a 2.020M$ solo entre 2025 y 2026, con el plazo de inscripción ZEC cerrando el 31 de diciembre de 2026.",
       tags: ["Bóvedas familiares", "Bucles virales incentivados", "Cumplimiento LOPDGDD 3/2018"],
     },
     {
-      range: "2030-2050",
+      range: "2031-2051",
       number: "02",
       title: "Soberanía Algorítmica",
       description:
@@ -89,7 +96,7 @@ export const timeline = {
       tags: ["Cláusulas auto-ejecutables", "Identidad continua", "Genómica + ULL"],
     },
     {
-      range: "2050-2090",
+      range: "2051-2091",
       number: "03",
       title: "Bóvedas Orbitales",
       description:
@@ -97,7 +104,7 @@ export const timeline = {
       tags: ["Cifrado lattice-postcuántico", "Custodia interplanetaria", "Sucesión multi-firma"],
     },
     {
-      range: "2090 — 2126",
+      range: "2091 — 2126",
       number: "04",
       title: "Colonización Digital del Sistema Solar",
       description:
@@ -136,12 +143,12 @@ export const tenerife = {
   title: "Santa Cruz de Tenerife.",
   titleHighlight: "Alquimia fiscal.",
   description:
-    "La Zona Especial Canaria combinada con la Reserva para Inversiones convierte a Tenerife en el puerto fiscal natural del legado digital europeo. INtech y la Universidad de La Laguna proveen el talento.",
+    "La Zona Especial Canaria combinada con la Reserva para Inversiones convierte a Tenerife en el puerto fiscal natural del legado digital europeo. INtech y la Universidad de La Laguna proveen el talento. El plazo de inscripción ZEC cierra el 31 de diciembre de 2026, sin prórroga.",
   landmark: "Teide · 3 718 m · referencia notarial del cénit",
   stats: [
-    { label: "ZEC", value: "4%", caption: "Impuesto sobre Sociedades" },
+    { label: "ZEC", value: "4%", caption: "Impuesto sobre Sociedades · vigente hasta 2032" },
     { label: "RIC", value: "90%", caption: "Reducción de base imponible" },
-    { label: "I+D", value: "45–75,6%", caption: "Deducciones tecnológicas" },
+    { label: "I+D+i", value: "25–59%", caption: "Deducciones tecnológicas (Art. 35 LIS)" },
     { label: "ULL", value: "∞", caption: "Talento en astrofísica y biomedicina" },
   ],
 };
@@ -154,6 +161,6 @@ export const finalCta = {
 };
 
 export const footer = {
-  copyright: "© 2025 El Cénit · Santa Cruz de Tenerife · ZEC",
-  version: "v1.0 · Convergencia",
+  copyright: "© 2026 El Cénit · Santa Cruz de Tenerife · ZEC",
+  version: "v1.1 · Convergencia",
 };
