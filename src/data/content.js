@@ -55,16 +55,22 @@ export const tesis = {
       stat2: "2.020M$ (2026)",
       post: ", camino a superar los 3.670M$ en 2034. Pero la fricción técnica y la urgencia emocional siguen sin resolverse. El Cénit es nuestra respuesta.",
     },
+    {
+      pre: "España ya reconoce este derecho: el artículo 96 de la ",
+      stat: "LOPDGDD (Ley Orgánica 3/2018)",
+      post: " regula el derecho al testamento digital, y Cataluña (Ley 10/2017) permite designar un administrador digital. El Cénit convierte ese marco legal en una herramienta que cualquiera puede usar.",
+    },
   ],
   cards: [
     {
       title: "Bóveda Privada",
       description:
-        "Cifrado simulado reticular-postcuántico. Contraseñas, cripto, mensajes póstumos.",
+        "Cifrado con los estándares post-cuánticos del NIST (ML-KEM / FIPS 203, ML-DSA / FIPS 204). Contraseñas, cripto, mensajes póstumos — protegidos también frente a la computación cuántica.",
     },
     {
       title: "Red de Herederos",
-      description: "Designa, valida y cuantifica. Cada validación amplía tu bóveda.",
+      description:
+        "Designa tu albacea digital al amparo del artículo 96 de la LOPDGDD. Cada heredero validado amplía tu bóveda.",
     },
     {
       title: "Asistente Cénit",
@@ -118,21 +124,21 @@ export const modelo = {
   eyebrow: "03 · Modelo",
   title: "Bucles virales del legado.",
   description:
-    "Inspirados en Dropbox y Robinhood, calibrados para la urgencia emocional del testamento.",
+    "Inspirados en los mecanismos de crecimiento de Dropbox y Robinhood, calibrados aquí para la urgencia emocional y legal del testamento digital.",
   cards: [
     {
       title: "Incentivado",
-      description: "+250 MB de bóveda por cada heredero validado.",
+      description: "+250 MB de bóveda por cada heredero o albacea digital validado.",
       footnote: "Red de confianza intergeneracional.",
     },
     {
       title: "Contacto casual",
-      description: "Notificaciones de 'Legado Seguro' a contactos de emergencia.",
+      description: "Notificaciones de 'Legado Seguro' a los contactos de emergencia designados.",
       footnote: "Exposición indirecta a usuarios de alto valor.",
     },
     {
       title: "Colaborativo",
-      description: "Bóvedas familiares con firma multiparte simulada.",
+      description: "Bóvedas familiares con firma multiparte, compatibles con el testamento cerrado ante notario.",
       footnote: "Retención por efecto de red familiar.",
     },
   ],
