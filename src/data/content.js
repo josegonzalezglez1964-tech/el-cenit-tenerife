@@ -73,7 +73,7 @@ export const timeline = {
     "Desde la economía del más allá digital hasta la colonización orbital de la conciencia. Una hoja de ruta para 2026—2126 anclada en Santa Cruz de Tenerife.",
   stages: [
     {
-      range: "2025-2030",
+      range: "2026-2030",
       number: "01",
       title: "Génesis del Patrimonio Digital",
       description:
