@@ -1,6 +1,6 @@
 import { brand, nav } from "../data/content";
 
-export default function Navbar({ onGoogleLogin }) {
+export default function Navbar({ onGoogleLogin, user, onSignOut }) {
   return (
     <nav
       data-testid="main-navbar"
@@ -26,13 +26,27 @@ export default function Navbar({ onGoogleLogin }) {
           ))}
         </div>
 
-        <button
-          onClick={onGoogleLogin}
-          data-testid="google-login-button"
-          className="rounded-full bg-ink text-cream text-sm font-medium px-5 py-2 hover:bg-clay transition-colors"
-        >
-          Acceder con Google
-        </button>
+        {user ? (
+          <div className="flex items-center gap-3">
+            <span className="hidden sm:inline text-sm text-ink/70 truncate max-w-[160px]">
+              {user.email}
+            </span>
+            <button
+              onClick={onSignOut}
+              className="rounded-full border border-ink/20 text-sm font-medium px-5 py-2 hover:border-ink/50 transition-colors"
+            >
+              Cerrar sesión
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={onGoogleLogin}
+            data-testid="google-login-button"
+            className="rounded-full bg-ink text-cream text-sm font-medium px-5 py-2 hover:bg-clay transition-colors"
+          >
+            Acceder con Google
+          </button>
+        )}
       </div>
     </nav>
   );
