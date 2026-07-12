@@ -1,6 +1,8 @@
+import { useNavigate } from "react-router-dom";
 import { brand, nav } from "../data/content";
 
 export default function Navbar({ onGoogleLogin, user, onSignOut }) {
+  const navigate = useNavigate();
   return (
     <nav
       data-testid="main-navbar"
@@ -24,6 +26,14 @@ export default function Navbar({ onGoogleLogin, user, onSignOut }) {
               {item.label}
             </a>
           ))}
+          {user && (
+            <button
+              onClick={() => navigate("/boveda")}
+              className="text-sm font-medium text-ink/70 hover:text-ink transition-colors"
+            >
+              Mi Bóveda
+            </button>
+          )}
         </div>
 
         {user ? (
