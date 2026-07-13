@@ -37,15 +37,52 @@ export async function initVaultSetup(userId, { salt, checkCiphertext, checkIv })
 export async function listVaultEntries(userId) {
   return supabase
     .from("vault_entries")
-    .select("id, titulo, categoria, ciphertext, iv, created_at")
+    .select("id, titulo, categoria, tipo, ciphertext, iv, nombre_archivo, mime_type, tamano_bytes, storage_path, created_at")
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
 }
 
-export async function addVaultEntry(userId, { titulo, categoria, ciphertext, iv }) {
-  return supabase.from("vault_entries").insert({ user_id: userId, titulo, categoria, ciphertext, iv });
+// Entrada de texto: el contenido cifrado va directo en la tabla.
+export async function addVaultTextEntry(userId, { titulo, categoria, ciphertext, iv }) {
+  return supabase
+    .from("vault_entries")
+    .insert({ user_id: userId, tipo: "texto", titulo, categoria, ciphertext, iv });
 }
 
-export async function deleteVaultEntry(id) {
-  return supabase.from("vault_entries").delete().eq("id", id);
+// Entrada de archivo: el contenido cifrado (grande) va al Storage, y en
+// la tabla solo queda la ruta + metadatos ligeros.
+export async function addVaultFileEntry(
+  userId,
+  { titulo, categoria, iv, nombreArchivo, mimeType, tamanoBytes, storagePath }
+) {
+  return supabase.from("vault_entries").insert({
+    user_id: userId,
+    tipo: "archivo",
+    titulo,
+    categoria,
+    iv,
+    nombre_archivo: nombreArchivo,
+    mime_type: mimeType,
+    tamano_bytes: tamanoBytes,
+    storage_path: storagePath,
+    ciphertext: "", // no se usa para archivos
+  });
+}
+
+export async function uploadEncryptedFile(storagePath, encryptedBlob) {
+  return supabase.storage.from("boveda").upload(storagePath, encryptedBlob, {
+    contentType: "application/octet-stream",
+    upsert: false,
+  });
+}
+
+export async function downloadEncryptedFile(storagePath) {
+  return supabase.storage.from("boveda").download(storagePath);
+}
+
+export async function deleteVaultEntry(entry) {
+  if (entry.tipo === "archivo" && entry.storage_path) {
+    await supabase.storage.from("boveda").remove([entry.storage_path]);
+  }
+  return supabase.from("vault_entries").delete().eq("id", entry.id);
 }

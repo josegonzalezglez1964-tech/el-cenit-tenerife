@@ -58,6 +58,25 @@ export async function encryptText(key, plaintext) {
   return { ciphertext: toBase64(ciphertext), iv: toBase64(iv) };
 }
 
+// Cifra un archivo cualquiera (PDF, Word, imagen, o cualquier formato que
+// exista en el futuro) tratándolo como bytes puros — nunca intentamos
+// interpretar su contenido, así que el formato nunca es un problema.
+export async function encryptFile(key, file) {
+  const arrayBuffer = await file.arrayBuffer();
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, arrayBuffer);
+  return { blob: new Blob([ciphertext]), iv: toBase64(iv) };
+}
+
+// Descifra un archivo ya descargado (como Blob cifrado) de vuelta a sus
+// bytes originales, listos para reconstruir el archivo tal cual era.
+export async function decryptFileBlob(key, encryptedBlob, ivBase64, mimeType) {
+  const iv = new Uint8Array(fromBase64(ivBase64));
+  const ciphertextBuffer = await encryptedBlob.arrayBuffer();
+  const plainBuffer = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ciphertextBuffer);
+  return new Blob([plainBuffer], { type: mimeType || "application/octet-stream" });
+}
+
 // Si la frase maestra es incorrecta, AES-GCM lanza una excepción al
 // descifrar (el "tag" de autenticación no coincide) — así detectamos
 // una frase equivocada sin tener que guardar la frase en ningún sitio.
