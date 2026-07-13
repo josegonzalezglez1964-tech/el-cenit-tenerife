@@ -1,0 +1,25 @@
+name: Mantener Supabase activo
+
+# Los proyectos gratuitos de Supabase se pausan tras 7 días sin actividad.
+# Este workflow hace una petición ligera cada 3 días para evitarlo.
+# No lee ni modifica ningún dato — solo toca el endpoint público de la API.
+
+on:
+  schedule:
+    - cron: "0 6 */3 * *"  # cada 3 días a las 06:00 UTC
+  workflow_dispatch: {}      # permite lanzarlo a mano desde la pestaña Actions
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping al endpoint de Supabase
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}")
+          echo "Respuesta de Supabase: HTTP $STATUS"
+          if [ "$STATUS" -lt 200 ] || [ "$STATUS" -ge 500 ]; then
+            echo "Aviso: respuesta inesperada de Supabase."
+            exit 1
+          fi
