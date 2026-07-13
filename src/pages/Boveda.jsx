@@ -41,6 +41,25 @@ function formatBytes(bytes) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+function Shell({ children }) {
+  const navigate = useNavigate();
+  return (
+    <div className="min-h-screen bg-cream text-ink">
+      <header className="border-b border-line">
+        <div className="max-w-3xl mx-auto px-6 py-5 flex items-center justify-between">
+          <button onClick={() => navigate("/")} className="font-display text-xl tracking-tight">
+            El Cénit
+          </button>
+          <button onClick={() => navigate("/")} className="text-sm text-ink/60 hover:text-ink transition-colors">
+            Volver al inicio
+          </button>
+        </div>
+      </header>
+      <main className="max-w-3xl mx-auto px-6 py-12 lg:py-16">{children}</main>
+    </div>
+  );
+}
+
 export default function Boveda() {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
@@ -243,22 +262,6 @@ export default function Boveda() {
   const usagePercent = Math.min(100, (totalBytesUsed / FREE_TIER_BYTES) * 100);
 
   // ---------- Render ----------
-
-  const Shell = ({ children }) => (
-    <div className="min-h-screen bg-cream text-ink">
-      <header className="border-b border-line">
-        <div className="max-w-3xl mx-auto px-6 py-5 flex items-center justify-between">
-          <button onClick={() => navigate("/")} className="font-display text-xl tracking-tight">
-            El Cénit
-          </button>
-          <button onClick={() => navigate("/")} className="text-sm text-ink/60 hover:text-ink transition-colors">
-            Volver al inicio
-          </button>
-        </div>
-      </header>
-      <main className="max-w-3xl mx-auto px-6 py-12 lg:py-16">{children}</main>
-    </div>
-  );
 
   if (!isSupabaseConfigured) {
     return (
