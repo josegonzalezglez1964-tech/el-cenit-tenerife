@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { isSupabaseConfigured, getSession, signInWithGoogle } from "../lib/supabaseClient";
 import { saveTestamento } from "../lib/testamentos";
+import { notifyHeirs } from "../lib/notifyHeirs";
 
 const DRAFT_KEY = "cenit_draft";
 
@@ -58,6 +59,7 @@ export default function TestamentoWizard() {
           setSaveError(error.message);
         } else {
           setSaved(true);
+          notifyHeirs(draft.nombre, draft.herederos);
         }
       }
     }
@@ -123,6 +125,7 @@ export default function TestamentoWizard() {
         setSaveError(error.message);
       } else {
         setSaved(true);
+        notifyHeirs(form.nombre, form.herederos);
       }
       return;
     }
