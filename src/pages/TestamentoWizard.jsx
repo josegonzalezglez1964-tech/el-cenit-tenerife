@@ -5,6 +5,11 @@ import { saveTestamento } from "../lib/testamentos";
 import { notifyHeirs } from "../lib/notifyHeirs";
 
 const DRAFT_KEY = "cenit_draft";
+// Caducidad del borrador: pasado este tiempo, se descarta en vez de
+// restaurarse. Reduce la ventana en la que datos sensibles (nombres,
+// emails de herederos, mensaje del testamento) quedan accesibles en el
+// navegador si el usuario no completa el proceso.
+const DRAFT_MAX_AGE_MS = 30 * 60 * 1000; // 30 minutos
 
 const STEPS = [
   { id: "identidad", label: "Identidad" },
@@ -46,15 +51,23 @@ export default function TestamentoWizard() {
       const currentSession = await getSession();
       setSession(currentSession);
 
-      const pending = localStorage.getItem(DRAFT_KEY);
+      // sessionStorage (no localStorage): se borra solo al cerrar la
+      // pestaña/navegador, en vez de quedarse para siempre en el equipo.
+      const pending = sessionStorage.getItem(DRAFT_KEY);
       if (pending && currentSession) {
-        const draft = JSON.parse(pending);
+        const parsed = JSON.parse(pending);
+        const { savedAt, ...draft } = parsed;
+        const isExpired = !savedAt || Date.now() - savedAt > DRAFT_MAX_AGE_MS;
+        sessionStorage.removeItem(DRAFT_KEY);
+        if (isExpired) {
+          console.warn("[TestamentoWizard] Borrador caducado; se descarta sin restaurar.");
+          return;
+        }
         setForm(draft);
         setStep(STEPS.length - 1);
         setSaving(true);
         const { error } = await saveTestamento(draft, currentSession.user.id);
         setSaving(false);
-        localStorage.removeItem(DRAFT_KEY);
         if (error) {
           setSaveError(error.message);
         } else {
@@ -130,10 +143,11 @@ export default function TestamentoWizard() {
       return;
     }
 
-    // No hay sesión: guardamos el formulario en localStorage y mandamos
-    // al usuario a iniciar sesión con Google. Al volver, el useEffect de
-    // arriba recupera el borrador y termina de guardarlo solo.
-    localStorage.setItem(DRAFT_KEY, JSON.stringify(form));
+    // No hay sesión: guardamos el formulario en sessionStorage (no
+    // localStorage, para que se borre solo al cerrar el navegador) y
+    // mandamos al usuario a iniciar sesión con Google. Al volver, el
+    // useEffect de arriba recupera el borrador y termina de guardarlo solo.
+    sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ ...form, savedAt: Date.now() }));
     const { error } = await signInWithGoogle("/testamento");
     if (error) setSaveError(error.message);
   };
