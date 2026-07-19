@@ -43,6 +43,14 @@ export default function Navbar({ onGoogleLogin, user, onSignOut }) {
               Mi Bóveda
             </button>
           )}
+          {user && (
+            <button
+              onClick={() => navigate("/mi-testamento")}
+              className="text-sm font-medium text-ink/70 hover:text-ink transition-colors"
+            >
+              Mi Testamento
+            </button>
+          )}
         </div>
 
         <div className="flex items-center gap-3">
@@ -98,6 +106,14 @@ export default function Navbar({ onGoogleLogin, user, onSignOut }) {
               className="block text-sm font-medium text-ink/80 py-1"
             >
               Mi Bóveda
+            </button>
+          )}
+          {user && (
+            <button
+              onClick={() => goTo("/mi-testamento")}
+              className="block text-sm font-medium text-ink/80 py-1"
+            >
+              Mi Testamento
             </button>
           )}
 
