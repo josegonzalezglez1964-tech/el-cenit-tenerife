@@ -59,25 +59,33 @@ export async function saveTestamento(form, userId) {
   // Insertamos los herederos NUEVOS antes de borrar los antiguos. Así,
   // si algo falla en el insert, los herederos existentes se quedan
   // intactos en vez de perderse en una tabla vacía a medio camino.
-  const { error: insertError } = await supabase.from("herederos").insert(
-    herederosValidos.map((h) => ({
-      testamento_id: testamentoId,
-      nombre: h.nombre,
-      email: h.email,
-      relacion: h.relacion,
-    }))
-  );
+  // Pedimos los "id" de vuelta para poder identificar exactamente cuáles
+  // son los nuevos al borrar los viejos (sin depender de comparar fechas,
+  // que sería frágil ante cualquier desfase de reloj cliente/servidor).
+  const { data: insertedHerederos, error: insertError } = await supabase
+    .from("herederos")
+    .insert(
+      herederosValidos.map((h) => ({
+        testamento_id: testamentoId,
+        nombre: h.nombre,
+        email: h.email,
+        relacion: h.relacion,
+      }))
+    )
+    .select("id");
   if (insertError) return { error: insertError };
 
   // Solo ahora, con los nuevos ya guardados con éxito, borramos los
-  // herederos de la versión anterior (identificados por fecha, para no
-  // borrar los que acabamos de insertar).
+  // herederos de la versión anterior — todos los que cuelguen de este
+  // testamento EXCEPTO los que acabamos de insertar (identificados por
+  // su id real, no por fecha).
   if (existing) {
-    await supabase
-      .from("herederos")
-      .delete()
-      .eq("testamento_id", testamentoId)
-      .lt("created_at", payload.updated_at);
+    const nuevosIds = (insertedHerederos || []).map((h) => h.id);
+    let deleteQuery = supabase.from("herederos").delete().eq("testamento_id", testamentoId);
+    if (nuevosIds.length > 0) {
+      deleteQuery = deleteQuery.not("id", "in", `(${nuevosIds.join(",")})`);
+    }
+    await deleteQuery;
   }
 
   return { error: null, testamentoId };
