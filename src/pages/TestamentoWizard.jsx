@@ -59,7 +59,7 @@ export default function TestamentoWizard() {
           setSaveError(error.message);
         } else {
           setSaved(true);
-          notifyHeirs(draft.nombre, draft.herederos);
+          notifyHeirs();
         }
       }
     }
@@ -125,7 +125,7 @@ export default function TestamentoWizard() {
         setSaveError(error.message);
       } else {
         setSaved(true);
-        notifyHeirs(form.nombre, form.herederos);
+        notifyHeirs();
       }
       return;
     }
