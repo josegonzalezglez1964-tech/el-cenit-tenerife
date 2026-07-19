@@ -9,6 +9,19 @@ export async function saveTestamento(form, userId) {
     return { error: new Error("Supabase no está configurado.") };
   }
 
+  // Guarda de seguridad: nunca guardamos un testamento sin al menos un
+  // heredero válido. Esto evita que un formulario vacío (por ejemplo,
+  // tras recargar la página a media prueba) borre herederos reales sin
+  // reemplazarlos por nada.
+  const herederosValidos = form.herederos.filter((h) => h.nombre.trim() && h.email.trim());
+  if (herederosValidos.length === 0) {
+    return {
+      error: new Error(
+        "Debes indicar al menos un heredero con nombre y correo electrónico antes de guardar."
+      ),
+    };
+  }
+
   // Upsert: si el usuario ya tiene un testamento, lo actualiza; si no, lo crea.
   const { data: existing } = await supabase
     .from("testamentos")
@@ -33,9 +46,6 @@ export async function saveTestamento(form, userId) {
       .update(payload)
       .eq("id", testamentoId);
     if (error) return { error };
-
-    // Sustituye los herederos existentes por los del formulario actual
-    await supabase.from("herederos").delete().eq("testamento_id", testamentoId);
   } else {
     const { data, error } = await supabase
       .from("testamentos")
@@ -46,17 +56,28 @@ export async function saveTestamento(form, userId) {
     testamentoId = data.id;
   }
 
-  const herederosValidos = form.herederos.filter((h) => h.nombre.trim() && h.email.trim());
-  if (herederosValidos.length > 0) {
-    const { error } = await supabase.from("herederos").insert(
-      herederosValidos.map((h) => ({
-        testamento_id: testamentoId,
-        nombre: h.nombre,
-        email: h.email,
-        relacion: h.relacion,
-      }))
-    );
-    if (error) return { error };
+  // Insertamos los herederos NUEVOS antes de borrar los antiguos. Así,
+  // si algo falla en el insert, los herederos existentes se quedan
+  // intactos en vez de perderse en una tabla vacía a medio camino.
+  const { error: insertError } = await supabase.from("herederos").insert(
+    herederosValidos.map((h) => ({
+      testamento_id: testamentoId,
+      nombre: h.nombre,
+      email: h.email,
+      relacion: h.relacion,
+    }))
+  );
+  if (insertError) return { error: insertError };
+
+  // Solo ahora, con los nuevos ya guardados con éxito, borramos los
+  // herederos de la versión anterior (identificados por fecha, para no
+  // borrar los que acabamos de insertar).
+  if (existing) {
+    await supabase
+      .from("herederos")
+      .delete()
+      .eq("testamento_id", testamentoId)
+      .lt("created_at", payload.updated_at);
   }
 
   return { error: null, testamentoId };
