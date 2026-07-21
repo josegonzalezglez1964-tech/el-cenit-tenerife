@@ -66,7 +66,7 @@ export default function TestamentoWizard() {
         setForm(draft);
         setStep(STEPS.length - 1);
         setSaving(true);
-        const { error } = await saveTestamento(draft, currentSession.user.id);
+        const { error } = await saveTestamento(draft);
         setSaving(false);
         if (error) {
           setSaveError(error.message);
@@ -132,7 +132,7 @@ export default function TestamentoWizard() {
       // Ya hay sesión iniciada: guardamos directamente.
       setSaving(true);
       setSaveError(null);
-      const { error } = await saveTestamento(form, session.user.id);
+      const { error } = await saveTestamento(form);
       setSaving(false);
       if (error) {
         setSaveError(error.message);
