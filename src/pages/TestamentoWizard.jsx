@@ -369,7 +369,7 @@ export default function TestamentoWizard() {
             {saved ? (
               <div className="rounded-xl border border-clay/30 bg-clay/5 p-5 text-sm">
                 {isSupabaseConfigured
-                  ? "Guardado en tu bóveda. Puedes volver a esta página cuando quieras para editarlo."
+                  ? "Testamento guardado. Puedes verlo o editarlo en \"Mi Testamento\" cuando quieras."
                   : "Borrador guardado localmente. Cuando conectemos tu cuenta con Google, esto se sincronizará con tu bóveda real."}
               </div>
             ) : (
