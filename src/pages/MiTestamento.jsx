@@ -42,7 +42,7 @@ export default function MiTestamento() {
         return;
       }
 
-      const { testamento, error } = await getTestamento(currentSession.user.id);
+      const { testamento, error } = await getTestamento();
       if (error) {
         setSaveError(error.message);
       } else if (testamento) {
@@ -97,7 +97,7 @@ export default function MiTestamento() {
     setSaving(true);
     setSaveError(null);
     setSavedMsg(false);
-    const { error } = await saveTestamento(form, session.user.id);
+    const { error } = await saveTestamento(form);
     setSaving(false);
     if (error) {
       setSaveError(error.message);
