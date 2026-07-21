@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { decryptJSON } from "./_crypto.js";
 
 // Función serverless de Vercel. Se despliega automáticamente en
 // https://tu-dominio.vercel.app/api/notify-heirs — nunca se ejecuta en
@@ -44,16 +45,27 @@ export default async function handler(req, res) {
     return res.status(404).json({ error: "No se encontró un testamento para este usuario." });
   }
 
-  const { data: herederos, error: herederosError } = await supabase
+  const { data: herederosRows, error: herederosError } = await supabase
     .from("herederos")
-    .select("nombre, email, relacion")
+    .select("id, ciphertext, iv")
     .eq("testamento_id", testamento.id);
 
   if (herederosError) {
     return res.status(500).json({ error: "Error leyendo herederos." });
   }
 
-  const destinatarios = (herederos || []).filter(
+  const herederos = (herederosRows || [])
+    .map((row) => {
+      try {
+        return decryptJSON(row.ciphertext, row.iv);
+      } catch (err) {
+        console.error(`[notify-heirs] No se pudo descifrar heredero ${row.id}:`, err.message);
+        return null;
+      }
+    })
+    .filter(Boolean);
+
+  const destinatarios = herederos.filter(
     (h) => h.nombre?.trim() && h.email?.trim()
   );
 
