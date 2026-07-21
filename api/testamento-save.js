@@ -48,6 +48,83 @@ export default async function handler(req, res) {
     nombre: form.nombre,
     email: form.email,
     categorias: form.categorias,
+    updated_at: new Date().toISOString(),
+  };
+
+  // El mensaje llega de dos formas posibles:
+  // - Ya cifrado por el navegador (form.mensajeCiphertext/mensajeIv):
+  //   lo guardamos tal cual, como datos opacos. Nunca vemos el texto.
+  // - En claro (form.mensaje, el caso del wizard inicial, que todavía
+  //   no pide la frase maestra): se guarda igual que hasta ahora.
+  if (form.mensajeCiphertext && form.mensajeIv) {
+    payload.mensaje_ciphertext = form.mensajeCiphertext;
+    payload.mensaje_iv = form.mensajeIv;
+    payload.mensaje = null;
+  } else if (typeof form.mensaje === "string") {
+    payload.mensaje = form.mensaje;
+  }
+
+  let testamentoId = existing?.id;
+
+  if (testamentoId) {
+    const { error } = await supabase.from("testamentos").update(payload).eq("id", testamentoId);
+    if (error) return res.status(500).json({ error: error.message });
+  } else {
+    const { data, error } = await supabase
+      .from("testamentos")
+      .insert(payload)
+      .select("id")
+      .single();
+    if (error) return res.status(500).json({ error: error.message });
+    testamentoId = data.id;
+  }
+
+  // Cifra cada heredero (nombre + email + relación, como un único blob
+  // JSON) antes de que toque la base de datos. El texto plano nunca se
+  // escribe en Supabase, en ningún momento.
+  const filasHerederos = herederosValidos.map((h) => {
+    const { ciphertext, iv } = encryptJSON({
+      nombre: h.nombre,
+      email: h.email,
+      relacion: h.relacion || "",
+    });
+    return { testamento_id: testamentoId, ciphertext, iv };
+  });
+
+  const { data: inserted, error: insertError } = await supabase
+    .from("herederos")
+    .insert(filasHerederos)
+    .select("id");
+  if (insertError) return res.status(500).json({ error: insertError.message });
+
+  // Igual que antes: borramos los herederos viejos SOLO después de que
+  // los nuevos ya estén guardados con éxito, e identificándolos por ID
+  // real (no por fecha).
+  if (existing) {
+    const nuevosIds = (inserted || []).map((h) => h.id);
+    let deleteQuery = supabase.from("herederos").delete().eq("testamento_id", testamentoId);
+    if (nuevosIds.length > 0) {
+      deleteQuery = deleteQuery.not("id", "in", `(${nuevosIds.join(",")})`);
+    }
+    await deleteQuery;
+  }
+
+  return res.status(200).json({ testamentoId });
+}
+    });
+  }
+
+  const { data: existing } = await supabase
+    .from("testamentos")
+    .select("id")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  const payload = {
+    user_id: userId,
+    nombre: form.nombre,
+    email: form.email,
+    categorias: form.categorias,
     mensaje: form.mensaje,
     updated_at: new Date().toISOString(),
   };
