@@ -1,8 +1,8 @@
 import { createClient } from "@supabase/supabase-js";
-import { decryptJSON } from "./_crypto.js";
+import { encryptJSON } from "./_crypto.js";
 
 export default async function handler(req, res) {
-  if (req.method !== "GET") {
+  if (req.method !== "POST") {
     return res.status(405).json({ error: "Method Not Allowed" });
   }
 
@@ -22,40 +22,18 @@ export default async function handler(req, res) {
   if (userError || !userData?.user) {
     return res.status(401).json({ error: "Sesión inválida o caducada." });
   }
+  const userId = userData.user.id;
 
-  const { data: testamento, error: testError } = await supabase
-    .from("testamentos")
-    .select("id, nombre, email, categorias, mensaje, mensaje_ciphertext, mensaje_iv, vault_salt, updated_at")
-    .eq("user_id", userData.user.id)
-    .maybeSingle();
+  const form = req.body || {};
+  const herederosValidos = (form.herederos || []).filter(
+    (h) => h?.nombre?.trim() && h?.email?.trim()
+  );
 
-  if (testError) return res.status(500).json({ error: testError.message });
-  if (!testamento) return res.status(200).json({ testamento: null });
-
-  const { data: herederosRows, error: herederosError } = await supabase
-    .from("herederos")
-    .select("id, ciphertext, iv")
-    .eq("testamento_id", testamento.id);
-
-  if (herederosError) return res.status(500).json({ error: herederosError.message });
-
-  const herederos = (herederosRows || [])
-    .map((row) => {
-      try {
-        const datos = decryptJSON(row.ciphertext, row.iv);
-        return { id: row.id, ...datos };
-      } catch (err) {
-        // Un heredero que no se puede descifrar (clave rotada, dato
-        // corrupto) no debe tirar abajo toda la pantalla — se omite y
-        // se registra en los logs del servidor para investigarlo.
-        console.error(`[testamento-get] No se pudo descifrar heredero ${row.id}:`, err.message);
-        return null;
-      }
-    })
-    .filter(Boolean);
-
-  return res.status(200).json({ testamento: { ...testamento, herederos } });
-}
+  // Misma guarda de seguridad que ya teníamos en el cliente: nunca
+  // guardamos (ni borramos herederos existentes) sin al menos uno válido.
+  if (herederosValidos.length === 0) {
+    return res.status(400).json({
+      error: "Debes indicar al menos un heredero con nombre y correo electrónico.",
     });
   }
 
@@ -85,71 +63,6 @@ export default async function handler(req, res) {
   } else if (typeof form.mensaje === "string") {
     payload.mensaje = form.mensaje;
   }
-
-  let testamentoId = existing?.id;
-
-  if (testamentoId) {
-    const { error } = await supabase.from("testamentos").update(payload).eq("id", testamentoId);
-    if (error) return res.status(500).json({ error: error.message });
-  } else {
-    const { data, error } = await supabase
-      .from("testamentos")
-      .insert(payload)
-      .select("id")
-      .single();
-    if (error) return res.status(500).json({ error: error.message });
-    testamentoId = data.id;
-  }
-
-  // Cifra cada heredero (nombre + email + relación, como un único blob
-  // JSON) antes de que toque la base de datos. El texto plano nunca se
-  // escribe en Supabase, en ningún momento.
-  const filasHerederos = herederosValidos.map((h) => {
-    const { ciphertext, iv } = encryptJSON({
-      nombre: h.nombre,
-      email: h.email,
-      relacion: h.relacion || "",
-    });
-    return { testamento_id: testamentoId, ciphertext, iv };
-  });
-
-  const { data: inserted, error: insertError } = await supabase
-    .from("herederos")
-    .insert(filasHerederos)
-    .select("id");
-  if (insertError) return res.status(500).json({ error: insertError.message });
-
-  // Igual que antes: borramos los herederos viejos SOLO después de que
-  // los nuevos ya estén guardados con éxito, e identificándolos por ID
-  // real (no por fecha).
-  if (existing) {
-    const nuevosIds = (inserted || []).map((h) => h.id);
-    let deleteQuery = supabase.from("herederos").delete().eq("testamento_id", testamentoId);
-    if (nuevosIds.length > 0) {
-      deleteQuery = deleteQuery.not("id", "in", `(${nuevosIds.join(",")})`);
-    }
-    await deleteQuery;
-  }
-
-  return res.status(200).json({ testamentoId });
-}
-    });
-  }
-
-  const { data: existing } = await supabase
-    .from("testamentos")
-    .select("id")
-    .eq("user_id", userId)
-    .maybeSingle();
-
-  const payload = {
-    user_id: userId,
-    nombre: form.nombre,
-    email: form.email,
-    categorias: form.categorias,
-    mensaje: form.mensaje,
-    updated_at: new Date().toISOString(),
-  };
 
   let testamentoId = existing?.id;
 

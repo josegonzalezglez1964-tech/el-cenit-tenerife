@@ -25,7 +25,7 @@ export default async function handler(req, res) {
 
   const { data: testamento, error: testError } = await supabase
     .from("testamentos")
-    .select("id, nombre, email, categorias, mensaje, updated_at")
+    .select("id, nombre, email, categorias, mensaje, mensaje_ciphertext, mensaje_iv, vault_salt, updated_at")
     .eq("user_id", userData.user.id)
     .maybeSingle();
 

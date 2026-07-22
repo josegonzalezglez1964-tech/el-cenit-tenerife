@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { isSupabaseConfigured, getSession, signInWithGoogle } from "../lib/supabaseClient";
 import { getTestamento, saveTestamento, deleteTestamento } from "../lib/testamentos";
+import { getVaultSetup } from "../lib/vaultEntries";
+import { deriveKey, encryptText, decryptText, VAULT_CHECK_PHRASE } from "../lib/vaultCrypto";
 
 const CATEGORIAS_BOVEDA = [
   { id: "contrasenas", label: "Contraseñas y accesos digitales" },
@@ -28,6 +30,14 @@ export default function MiTestamento() {
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState(null);
 
+  // Estado del cifrado zero-knowledge del mensaje póstumo.
+  const [vaultSetup, setVaultSetup] = useState(null); // { vault_salt, vault_check_ciphertext, vault_check_iv } | null
+  const [mensajeEncrypted, setMensajeEncrypted] = useState(null); // { ciphertext, iv } | null
+  const [cryptoKey, setCryptoKey] = useState(null); // null = bloqueado
+  const [unlockPassphrase, setUnlockPassphrase] = useState("");
+  const [unlockError, setUnlockError] = useState(null);
+  const [unlocking, setUnlocking] = useState(false);
+
   useEffect(() => {
     async function load() {
       if (!isSupabaseConfigured) {
@@ -42,16 +52,29 @@ export default function MiTestamento() {
         return;
       }
 
-      const { testamento, error } = await getTestamento();
+      const [{ testamento, error }, { data: vaultData }] = await Promise.all([
+        getTestamento(),
+        getVaultSetup(currentSession.user.id),
+      ]);
+      setVaultSetup(vaultData || null);
+
       if (error) {
         setSaveError(error.message);
       } else if (testamento) {
         setTestamentoId(testamento.id);
+        const tieneMensajeCifrado = Boolean(testamento.mensaje_ciphertext && testamento.mensaje_iv);
+        if (tieneMensajeCifrado) {
+          setMensajeEncrypted({
+            ciphertext: testamento.mensaje_ciphertext,
+            iv: testamento.mensaje_iv,
+          });
+        }
         setForm({
           nombre: testamento.nombre || "",
           email: testamento.email || "",
           categorias: testamento.categorias || [],
-          mensaje: testamento.mensaje || "",
+          // Si el mensaje está cifrado, no lo mostramos hasta desbloquear.
+          mensaje: tieneMensajeCifrado ? "" : testamento.mensaje || "",
           herederos: testamento.herederos.length
             ? testamento.herederos
             : [{ nombre: "", email: "", relacion: "" }],
@@ -93,15 +116,50 @@ export default function MiTestamento() {
     }));
   };
 
+  const handleDesbloquear = async (e) => {
+    e.preventDefault();
+    setUnlockError(null);
+    setUnlocking(true);
+    try {
+      const key = await deriveKey(unlockPassphrase, vaultSetup.vault_salt);
+      const check = await decryptText(key, vaultSetup.vault_check_ciphertext, vaultSetup.vault_check_iv);
+      if (check !== VAULT_CHECK_PHRASE) throw new Error("mismatch");
+      setCryptoKey(key);
+      setUnlockPassphrase("");
+      // Si había un mensaje cifrado esperando, lo descifra ahora para
+      // mostrarlo y dejarlo editable.
+      if (mensajeEncrypted) {
+        const mensajePlano = await decryptText(key, mensajeEncrypted.ciphertext, mensajeEncrypted.iv);
+        setForm((f) => ({ ...f, mensaje: mensajePlano }));
+      }
+    } catch {
+      setUnlockError("Frase maestra incorrecta. Inténtalo de nuevo.");
+    }
+    setUnlocking(false);
+  };
+
   const handleGuardarCambios = async () => {
     setSaving(true);
     setSaveError(null);
     setSavedMsg(false);
-    const { error } = await saveTestamento(form);
+
+    let payload = form;
+    let nuevoMensajeEncrypted = null;
+    // Si la bóveda está desbloqueada en esta sesión, ciframos el mensaje
+    // antes de que salga del navegador — el servidor nunca ve el texto.
+    if (cryptoKey) {
+      const { ciphertext, iv } = await encryptText(cryptoKey, form.mensaje || "");
+      nuevoMensajeEncrypted = { ciphertext, iv };
+      const { mensaje, ...resto } = form;
+      payload = { ...resto, mensajeCiphertext: ciphertext, mensajeIv: iv };
+    }
+
+    const { error } = await saveTestamento(payload);
     setSaving(false);
     if (error) {
       setSaveError(error.message);
     } else {
+      if (nuevoMensajeEncrypted) setMensajeEncrypted(nuevoMensajeEncrypted);
       setSavedMsg(true);
       setTimeout(() => setSavedMsg(false), 3000);
     }
@@ -276,12 +334,98 @@ export default function MiTestamento() {
           </div>
           <div>
             <label className="block text-sm font-medium mb-2">Mensaje póstumo (opcional)</label>
-            <textarea
-              value={form.mensaje}
-              onChange={(e) => setForm({ ...form, mensaje: e.target.value })}
-              rows={4}
-              className="w-full rounded-lg border border-line bg-white/60 px-4 py-3 text-sm focus:outline-none focus:border-clay resize-none"
-            />
+
+            {mensajeEncrypted && !cryptoKey ? (
+              // Caso 1: hay un mensaje cifrado y todavía no se ha
+              // introducido la frase maestra en esta sesión.
+              <div className="rounded-xl border border-line bg-white/40 p-5 space-y-4">
+                <p className="text-sm text-ink/60">
+                  🔒 Este mensaje está cifrado con tu frase maestra. Introdúcela para verlo o
+                  editarlo — nunca se envía a ningún servidor.
+                </p>
+                <form onSubmit={handleDesbloquear} className="flex gap-3">
+                  <input
+                    type="password"
+                    value={unlockPassphrase}
+                    onChange={(e) => setUnlockPassphrase(e.target.value)}
+                    placeholder="Tu frase maestra"
+                    className="flex-1 rounded-lg border border-line bg-white px-4 py-3 text-sm focus:outline-none focus:border-clay"
+                  />
+                  <button
+                    type="submit"
+                    disabled={unlocking}
+                    className="rounded-full bg-ink text-cream px-6 py-2.5 text-sm font-medium hover:bg-clay transition-colors disabled:opacity-50"
+                  >
+                    {unlocking ? "Comprobando…" : "Desbloquear"}
+                  </button>
+                </form>
+                {unlockError && <p className="text-sm text-red-600">{unlockError}</p>}
+              </div>
+            ) : !mensajeEncrypted && !vaultSetup?.vault_salt ? (
+              // Caso 2: todavía no existe una frase maestra (nunca se
+              // entró en Mi Bóveda) — el mensaje sigue en texto plano.
+              <div className="space-y-3">
+                <textarea
+                  value={form.mensaje}
+                  onChange={(e) => setForm({ ...form, mensaje: e.target.value })}
+                  rows={4}
+                  className="w-full rounded-lg border border-line bg-white/60 px-4 py-3 text-sm focus:outline-none focus:border-clay resize-none"
+                />
+                <p className="text-xs text-ink/50">
+                  Este mensaje se guarda sin cifrar por ahora.{" "}
+                  <button
+                    type="button"
+                    onClick={() => navigate("/boveda")}
+                    className="text-clay hover:text-clay-light underline"
+                  >
+                    Crea tu frase maestra en Mi Bóveda
+                  </button>{" "}
+                  para cifrarlo.
+                </p>
+              </div>
+            ) : !mensajeEncrypted && vaultSetup?.vault_salt && !cryptoKey ? (
+              // Caso 3: ya existe frase maestra (para la Bóveda) pero este
+              // mensaje concreto aún no se ha cifrado nunca. Se puede
+              // seguir editando en claro, o desbloquear ya para que el
+              // próximo guardado lo cifre.
+              <div className="space-y-3">
+                <textarea
+                  value={form.mensaje}
+                  onChange={(e) => setForm({ ...form, mensaje: e.target.value })}
+                  rows={4}
+                  className="w-full rounded-lg border border-line bg-white/60 px-4 py-3 text-sm focus:outline-none focus:border-clay resize-none"
+                />
+                <form onSubmit={handleDesbloquear} className="flex gap-3 items-start">
+                  <input
+                    type="password"
+                    value={unlockPassphrase}
+                    onChange={(e) => setUnlockPassphrase(e.target.value)}
+                    placeholder="Tu frase maestra"
+                    className="flex-1 rounded-lg border border-line bg-white px-4 py-3 text-sm focus:outline-none focus:border-clay"
+                  />
+                  <button
+                    type="submit"
+                    disabled={unlocking}
+                    className="rounded-full border border-clay text-clay px-6 py-2.5 text-sm font-medium hover:bg-clay/5 transition-colors disabled:opacity-50 whitespace-nowrap"
+                  >
+                    {unlocking ? "Comprobando…" : "Cifrar este mensaje"}
+                  </button>
+                </form>
+                {unlockError && <p className="text-sm text-red-600">{unlockError}</p>}
+              </div>
+            ) : (
+              // Caso 4: desbloqueado en esta sesión — se ve y edita en
+              // claro localmente, pero se cifra antes de guardar.
+              <div className="space-y-2">
+                <textarea
+                  value={form.mensaje}
+                  onChange={(e) => setForm({ ...form, mensaje: e.target.value })}
+                  rows={4}
+                  className="w-full rounded-lg border border-line bg-white/60 px-4 py-3 text-sm focus:outline-none focus:border-clay resize-none"
+                />
+                <p className="text-xs text-ink/50">🔓 Desbloqueado — se cifrará de nuevo al guardar.</p>
+              </div>
+            )}
           </div>
         </section>
 
