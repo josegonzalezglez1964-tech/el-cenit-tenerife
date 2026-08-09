@@ -33,3 +33,5 @@ pnpm-debug.log*
 # === Archivos temporales ===
 *.tmp
 *.temp
+.vercel
+.env*
