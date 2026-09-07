@@ -1,14 +1,32 @@
 import { useState } from "react";
+import { comunicarPosibleFallecimiento } from "../lib/fallecimiento/solicitudes";
 
 function ComunicarFallecimiento() {
   const [codigoReferencia, setCodigoReferencia] = useState("");
+  const [enviando, setEnviando] = useState(false);
+  const [mensaje, setMensaje] = useState("");
+  const [error, setError] = useState("");
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
 
-    // A1 todavía no envía datos al servidor.
-    // La API se incorporará en la siguiente capa.
-    console.log("Comunicación A1 preparada:", codigoReferencia);
+    setEnviando(true);
+    setMensaje("");
+    setError("");
+
+    const { error: solicitudError } =
+      await comunicarPosibleFallecimiento(codigoReferencia);
+
+    if (solicitudError) {
+      setError(solicitudError.message);
+      setEnviando(false);
+      return;
+    }
+
+    setMensaje(
+      "La comunicación ha sido recibida y será revisada conforme al protocolo."
+    );
+    setEnviando(false);
   }
 
   return (
@@ -66,10 +84,29 @@ function ComunicarFallecimiento() {
 
               <button
                 type="submit"
-                className="mt-6 inline-flex items-center justify-center bg-ink px-6 py-3 text-sm font-medium text-cream transition hover:opacity-85"
+                disabled={enviando}
+                className="mt-6 inline-flex items-center justify-center bg-ink px-6 py-3 text-sm font-medium text-cream transition hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Continuar
+                {enviando ? "Enviando..." : "Continuar"}
               </button>
+
+              {mensaje && (
+                <p
+                  role="status"
+                  className="mt-5 border border-line bg-white/50 p-4 text-sm leading-6"
+                >
+                  {mensaje}
+                </p>
+              )}
+
+              {error && (
+                <p
+                  role="alert"
+                  className="mt-5 border border-line bg-white/50 p-4 text-sm leading-6"
+                >
+                  {error}
+                </p>
+              )}
             </form>
 
             <aside className="border border-line p-6 md:p-8">
