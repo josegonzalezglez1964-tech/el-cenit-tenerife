@@ -3,6 +3,7 @@ import LandingPage from "./pages/LandingPage";
 import TestamentoWizard from "./pages/TestamentoWizard";
 import Boveda from "./pages/Boveda";
 import MiTestamento from "./pages/MiTestamento";
+import ComunicarFallecimiento from "./pages/ComunicarFallecimiento";
 
 function App() {
   return (
@@ -11,6 +12,10 @@ function App() {
       <Route path="/testamento" element={<TestamentoWizard />} />
       <Route path="/boveda" element={<Boveda />} />
       <Route path="/mi-testamento" element={<MiTestamento />} />
+      <Route
+        path="/comunicar-fallecimiento"
+        element={<ComunicarFallecimiento />}
+      />
     </Routes>
   );
 }
