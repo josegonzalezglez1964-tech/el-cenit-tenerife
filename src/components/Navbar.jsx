@@ -35,6 +35,12 @@ export default function Navbar({ onGoogleLogin, user, onSignOut }) {
               {item.label}
             </a>
           ))}
+          <button
+            onClick={() => navigate("/comunicar-fallecimiento")}
+            className="text-sm font-medium text-ink/70 hover:text-ink transition-colors"
+          >
+            Comunicar un posible fallecimiento
+          </button>
           {user && (
             <button
               onClick={() => navigate("/boveda")}
