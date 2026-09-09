@@ -46,6 +46,144 @@ function formatDate(value) {
   }).format(new Date(value));
 }
 
+function DetalleExpediente({ caso, onClose }) {
+  return (
+    <div className="mt-8 rounded-xl border border-line overflow-hidden">
+      <div className="px-5 py-4 border-b border-line flex items-center justify-between gap-4">
+        <div>
+          <p className="text-xs font-mono uppercase tracking-widest text-clay mb-1">
+            Expediente seleccionado
+          </p>
+
+          <h2 className="font-display text-2xl">
+            {caso.reference_code || "Sin referencia"}
+          </h2>
+        </div>
+
+        <button
+          onClick={onClose}
+          className="text-sm text-ink/60 hover:text-ink transition-colors"
+        >
+          Cerrar
+        </button>
+      </div>
+
+      <div className="p-5 space-y-6">
+        <div>
+          <p className="text-xs font-mono uppercase tracking-wide text-ink/40 mb-3">
+            Datos de la comunicación
+          </p>
+
+          <dl className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <dt className="text-xs text-ink/50 mb-1">Solicitante</dt>
+              <dd className="text-sm">
+                {caso.requester_name || "No indicado"}
+              </dd>
+            </div>
+
+            <div>
+              <dt className="text-xs text-ink/50 mb-1">Correo</dt>
+              <dd className="text-sm break-all">
+                {caso.requester_email || "No indicado"}
+              </dd>
+            </div>
+
+            <div>
+              <dt className="text-xs text-ink/50 mb-1">Relación</dt>
+              <dd className="text-sm">
+                {caso.requester_relation || "No indicada"}
+              </dd>
+            </div>
+
+            <div>
+              <dt className="text-xs text-ink/50 mb-1">Estado</dt>
+              <dd className="text-sm font-mono">
+                {caso.status || "SIN ESTADO"}
+              </dd>
+            </div>
+
+            <div>
+              <dt className="text-xs text-ink/50 mb-1">Fecha de recepción</dt>
+              <dd className="text-sm">{formatDate(caso.created_at)}</dd>
+            </div>
+
+            <div>
+              <dt className="text-xs text-ink/50 mb-1">Última actualización</dt>
+              <dd className="text-sm">{formatDate(caso.updated_at)}</dd>
+            </div>
+          </dl>
+        </div>
+
+        {caso.requester_reason && (
+          <div>
+            <p className="text-xs font-mono uppercase tracking-wide text-ink/40 mb-2">
+              Motivo comunicado
+            </p>
+
+            <div className="rounded-lg bg-ink/5 p-4">
+              <p className="text-sm text-ink/70 whitespace-pre-wrap">
+                {caso.requester_reason}
+              </p>
+            </div>
+          </div>
+        )}
+
+        <div>
+          <p className="text-xs font-mono uppercase tracking-wide text-ink/40 mb-3">
+            Estado de revisión
+          </p>
+
+          <dl className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <dt className="text-xs text-ink/50 mb-1">
+                Revisión
+              </dt>
+              <dd className="text-sm">
+                {caso.review_status || "No iniciada"}
+              </dd>
+            </div>
+
+            <div>
+              <dt className="text-xs text-ink/50 mb-1">
+                Tipo de incidencia
+              </dt>
+              <dd className="text-sm">
+                {caso.incident_type || "No indicado"}
+              </dd>
+            </div>
+
+            <div>
+              <dt className="text-xs text-ink/50 mb-1">
+                Notificación al titular
+              </dt>
+              <dd className="text-sm">
+                {formatDate(caso.titular_notified_at)}
+              </dd>
+            </div>
+
+            <div>
+              <dt className="text-xs text-ink/50 mb-1">
+                Respuesta del titular
+              </dt>
+              <dd className="text-sm whitespace-pre-wrap">
+                {caso.titular_response || "Sin respuesta"}
+              </dd>
+            </div>
+          </dl>
+        </div>
+
+        <div className="pt-4 border-t border-line">
+          <p className="text-xs text-ink/40">
+            En esta fase el expediente solo se muestra para revisión. Todavía
+            no se ejecuta ninguna acción sobre el expediente.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function RevisarFallecimientos() {
   const [session, setSession] = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
@@ -53,6 +191,7 @@ export default function RevisarFallecimientos() {
   const [casos, setCasos] = useState([]);
   const [casosLoading, setCasosLoading] = useState(false);
   const [casosError, setCasosError] = useState(null);
+  const [casoSeleccionado, setCasoSeleccionado] = useState(null);
 
   useEffect(() => {
     if (!isSupabaseConfigured) {
@@ -292,11 +431,28 @@ export default function RevisarFallecimientos() {
                     </p>
                   </div>
                 )}
+
+                <div className="mt-5">
+                  <button
+                    type="button"
+                    onClick={() => setCasoSeleccionado(caso)}
+                    className="rounded-full bg-ink text-cream px-5 py-2.5 text-sm font-medium hover:bg-clay transition-colors"
+                  >
+                    Abrir expediente
+                  </button>
+                </div>
               </article>
             ))}
           </div>
         )}
       </div>
+
+      {casoSeleccionado && (
+        <DetalleExpediente
+          caso={casoSeleccionado}
+          onClose={() => setCasoSeleccionado(null)}
+        />
+      )}
     </Shell>
   );
 }
